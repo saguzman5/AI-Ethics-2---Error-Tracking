@@ -1,0 +1,115 @@
+# Architecture
+
+## Technology choices
+
+| Component | Choice | Why |
+|---|---|---|
+| Server | Node.js 22+ using only built-in modules (`node:http`, `node:sqlite`, `node:crypto`, `node:zlib`) | One program, no third-party packages to install, patch or license. Runs on any PC or small VM. |
+| Central database | SQLite in WAL mode | A single file, zero administration, safe concurrent writes from many phones, strong constraints and triggers. Easy to back up. Schema ports to PostgreSQL/Supabase (see below). |
+| Photo storage | Files in `Database/data/photos/`, metadata in the `photos` table | Files are outside the web root and served only to signed-in managers, the uploading worker, or through signed, expiring links. |
+| Mobile app | Mobile web app (PWA-style), installable from the browser | Works on Android and iPhone without app stores or per-device licences. |
+| QR scanning | Native `BarcodeDetector`, otherwise jsQR | Fast native decoding where available, proven fallback elsewhere. |
+| Spreadsheet | Built-in live grid, plus a CSV feed for Google Sheets (Apps Script) and Excel (Power Query), plus `.xlsx` export | All read from the database. No manual copying. |
+| Dashboard | Built-in web dashboard with SVG charts | Updates instantly through Server-Sent Events; no Power BI licences. Power BI can still connect to the CSV feed (Get Data → Web) if wanted. |
+
+The suggested Power Apps / Supabase / Power BI stack was replaced because it requires several paid or separately managed accounts, and real-time updates across them need extra connectors. This stack runs from one folder, and every component reads the same database.
+
+## Data flow
+
+```
+ Phone (worker app)                     Server (Node.js)                          Managers
+ ───────────────────                    ────────────────                          ────────
+ 1 scan QR ── GET /api/products/lookup ─▶ products table
+ 2 fill form
+ 3 submit ─── POST /api/reports ────────▶ validate → BEGIN IMMEDIATE
+              (photo as JPEG, idempotency   save photo file + photos row
+               key client_submission_id)    error_reports row (ERR-000123, Open)
+                                            error_status_history row
+                                          COMMIT ─▶ publish "reports-changed" ──▶ dashboard & spreadsheet
+ 4 confirmation ◀── 201 {error_id, ...}                                         (Server-Sent Events) reload
+                                                                                 KPIs/charts/tables
+                                          ◀── POST /api/reports/:id/status ───── manager updates status
+                                            error_reports + history row
+                                          ─▶ publish "reports-changed" ──▶ all open dashboards/spreadsheets
+ Google Sheets ── every minute ─────────▶ GET /api/feed/reports.csv?key=…  (read-only)
+ Excel (Power Query) ── every minute ───▶ same feed
+```
+
+## Database
+
+Schema file: `Database/schema.sql` (applied automatically at start; idempotent).
+
+| Table | Purpose |
+|---|---|
+| `production_orders` | Order ID, customer, product, quantity |
+| `products` | One row per box: `box_id` (PK), `order_id` (FK), `produced_at` |
+| `users` | Workers and managers (scrypt password hashes, role, active flag) |
+| `sessions` | Login sessions (only SHA-256 hashes of tokens are stored) |
+| `production_stages` | Configurable stages (deactivated, never deleted) |
+| `error_categories` | Configurable error types (deactivated, never deleted) |
+| `photos` | Photo file path, MIME type, size, SHA-256, uploader |
+| `error_reports` | One row per report. Original fields plus current status, `requires_rework`, latest note, `status_changed_at`, `resolved_at` |
+| `error_status_history` | Every status change and note (append-only) |
+| `error_report_revisions` | Every correction of stage, type, severity or rework flag (append-only) |
+| `settings` | Spreadsheet feed key, signing secret |
+| `v_error_reports` (view) | Joined reporting view with the exact spreadsheet column names; used by the dashboard, spreadsheet and exports |
+
+Relationships: `error_reports.box_id → products`, `error_reports.order_id → production_orders`, `products.order_id → production_orders`, `error_reports.reported_by → users`, `error_reports.photo_id → photos`, `error_reports.stage_id → production_stages`, `error_reports.category_id → error_categories`.
+
+### Integrity rules enforced inside the database
+- `error_id` and `client_submission_id` are `UNIQUE`: a resubmitted report can never create a second row.
+- Triggers block deleting reports, changing the original submission (box, order, description, photo, reporter, timestamp), and changing or deleting history and revision rows.
+- A trigger rejects a report whose `order_id` does not match the box's order.
+- `CHECK` constraints restrict severity, status and boolean flags to valid values.
+
+### Error IDs and timestamps
+Error IDs (`ERR-000001`, …) and timestamps are generated by the server inside a write-locked transaction (`BEGIN IMMEDIATE`), so simultaneous submissions from many phones get unique, sequential IDs and server-clock times. Times are stored in UTC (ISO 8601) and shown in the configured factory time zone.
+
+### Duplicate prevention
+1. **Exact duplicates** (double taps, network retries): each form gets a random `client_submission_id`; a retry returns the original report.
+2. **Probable duplicates** (two workers reporting the same issue): an unresolved report for the same box, stage and error type within `DUPLICATE_WINDOW_MINUTES` triggers a warning; the worker must confirm it is a different issue.
+3. **Spreadsheets** are rebuilt from the database on every sync, one row per report.
+
+## Security
+
+- Roles are checked on the server for every API call: workers can look up products, submit reports, see their own last 20 reports and their own photos. All other endpoints require the manager role.
+- Session cookies: random 256-bit token, `HttpOnly`, `SameSite=Strict`, `Secure` over HTTPS; stored hashed. Cross-origin POST/PATCH requests are rejected.
+- Passwords: scrypt with per-user salt; sign-in throttled after 10 failures per 15 minutes.
+- Uploads: size-limited; type detected from file contents (JPEG/PNG/WebP only); random file names; never served from a public folder.
+- Spreadsheet feed: read-only, protected by a rotatable random key; photo links in feeds/exports are HMAC-signed and expire (`PHOTO_LINK_DAYS`).
+- Text typed by workers is HTML-escaped in every page, and cells starting with `= + - @` are neutralised in CSV exports (spreadsheet formula injection).
+- Content-Security-Policy, `X-Frame-Options: DENY`, `nosniff` and HSTS (over HTTPS) headers are set on every response.
+
+## API reference
+
+| Method & path | Role | Purpose |
+|---|---|---|
+| `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`, `POST /api/auth/password` | any | Sessions |
+| `GET /api/lists` | signed in | Active stages, error types, severities, statuses |
+| `GET /api/products/lookup?code=…` | signed in | Resolve a QR payload to Box ID / Order ID |
+| `POST /api/reports` | signed in | Submit a report |
+| `GET /api/reports/mine` | signed in | Own recent reports |
+| `GET /api/reports?filters&sort&dir&limit` | manager | List reports |
+| `GET /api/reports/:id` | manager | Report with history and revisions |
+| `POST /api/reports/:id/status` | manager | Change status / add note / set rework flag |
+| `PATCH /api/reports/:id` | manager | Correct stage, type, severity, rework flag |
+| `GET /api/metrics?filters` | manager | All dashboard metrics |
+| `GET /api/events` | manager | Server-Sent Events stream |
+| `GET /api/export/reports.csv`, `.xlsx` | manager | Exports (filters apply) |
+| `GET /api/feed/reports.csv?key=…` | feed key | Spreadsheet feed |
+| `GET /api/photos/:id` | manager, uploader, or signed link | Photo |
+| `/api/admin/*` | manager | Stages, error types, orders, products, QR labels, users, feed key |
+
+Filter parameters: `from`, `to` (YYYY-MM-DD), `stage_id`, `category_id`, `severity`, `status` (comma-separated lists allowed), `order_id`, `box_id` (partial match).
+
+## Moving to PostgreSQL / Supabase later
+
+`schema.sql` uses standard SQL. To move:
+- `INTEGER PRIMARY KEY AUTOINCREMENT` → `bigint generated always as identity`; `TEXT` timestamps → `timestamptz` with `default now()`.
+- Rewrite the triggers as PL/pgSQL functions (same rules).
+- Replace `src/db.js` with a `pg` client; the SQL in `reports.js` is plain SQL except `json_each` in `exporters.js` (use `= ANY($1)`).
+- Photos can move to Supabase Storage (private bucket, signed URLs) by changing `src/photos.js`.
+
+## Scaling notes
+
+SQLite with WAL handles many concurrent readers and serialised writes taking a few milliseconds each, i.e. far more than a factory floor submits. Dashboard metrics are computed per request over the filtered reports, which stays fast up to hundreds of thousands of reports. Beyond one site or very large volumes, move to PostgreSQL as described above.

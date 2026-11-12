@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · Production Quality</title>
+  <link rel="icon" href="/shared/logo.svg">
+  <link rel="stylesheet" href="/shared/theme.css">
+  <link rel="stylesheet" href="/shared/manager.css">
+  <link rel="stylesheet" href="/dashboard/dashboard.css">
+</head>
+<body>
+  <header class="topbar"></header>
+  <div class="page">
+    <div class="page-head">
+      <div>
+        <h1>Production Quality Dashboard</h1>
+        <div class="sub" id="updated">Loading…</div>
+      </div>
+      <div class="actions">
+        <a class="btn" id="to-sheet" href="/spreadsheet/">Open spreadsheet</a>
+      </div>
+    </div>
+
+    <!-- E. Filters -->
+    <section class="card" id="filters" aria-label="Filters"></section>
+
+    <!-- A. KPIs -->
+    <section class="kpis" aria-label="Key performance indicators">
+      <div class="kpi card"><div class="k">Total errors reported</div><div class="v" id="k-total">–</div><div class="s" id="k-total-s"></div></div>
+      <div class="kpi card warn"><div class="k">Unresolved errors</div><div class="v" id="k-unres">–</div><div class="s" id="k-unres-s"></div></div>
+      <div class="kpi card crit"><div class="k">High &amp; critical errors</div><div class="v" id="k-hc">–</div><div class="s" id="k-hc-s"></div></div>
+      <div class="kpi card"><div class="k">Rework rate</div><div class="v" id="k-rr">–</div><div class="s" id="k-rr-s"></div></div>
+      <div class="kpi card good"><div class="k">Resolved errors</div><div class="v" id="k-res">–</div><div class="s" id="k-res-s"></div></div>
+    </section>
+
+    <!-- C. Analysis -->
+    <section class="grid g-2-1">
+      <div class="card"><header><h2>Errors over time</h2><span class="sub">reports per day</span></header><div class="body" id="c-time"></div></div>
+      <div class="card"><header><h2>Error severity</h2><span class="sub">click a bar to filter</span></header><div class="body" id="c-sev"></div></div>
+    </section>
+    <section class="grid g-3">
+      <div class="card"><header><h2>Errors by production stage</h2><span class="sub">click to filter</span></header><div class="body" id="c-stage"></div></div>
+      <div class="card"><header><h2>Errors by type</h2><span class="sub">click to filter</span></header><div class="body" id="c-type"></div></div>
+      <div class="card"><header><h2>Most common errors</h2><span class="sub">error type at stage</span></header><div class="body" id="c-top"></div></div>
+    </section>
+
+    <!-- D. Resolution & rework -->
+    <section class="card">
+      <header><h2>Error resolution &amp; rework</h2></header>
+      <div class="body res-grid">
+        <div class="pipeline" id="pipeline"></div>
+        <div class="res-kpis">
+          <div class="mini"><div class="k">Rework rate</div><div class="v" id="r-rr">–</div><div class="s" id="r-rr-s"></div></div>
+          <div class="mini"><div class="k">Avg. time to resolve</div><div class="v" id="r-avg">–</div><div class="s" id="r-avg-s"></div></div>
+          <div class="mini"><div class="k">Resolution rate</div><div class="v" id="r-resrate">–</div><div class="s">resolved ÷ reported errors</div></div>
+        </div>
+        <div class="funnel" id="funnel"></div>
+      </div>
+    </section>
+
+    <!-- B. Error report overview -->
+    <section class="card">
+      <header>
+        <h2>Error reports</h2><span class="sub" id="t-count"></span>
+        <div class="spacer"></div>
+        <a class="btn sm" id="exp-csv" href="#">Export CSV</a>
+        <a class="btn sm" id="exp-xlsx" href="#">Export Excel</a>
+      </header>
+      <div class="body nopad">
+        <div class="table-wrap reports" id="table"></div>
+      </div>
+    </section>
+    <p class="muted small footnote">Metric definitions: each KPI shows its formula; full definitions in Documentation/METRICS.md. Times shown in <span id="tz"></span>.</p>
+  </div>
+
+  <script src="/shared/common.js"></script>
+  <script src="/shared/filters.js"></script>
+  <script src="/shared/report-panel.js"></script>
+  <script src="/dashboard/charts.js"></script>
+  <script src="/dashboard/dashboard.js"></script>
+</body>
+</html>

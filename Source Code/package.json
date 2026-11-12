@@ -1,0 +1,21 @@
+{
+  "name": "production-error-tracking",
+  "version": "1.0.0",
+  "description": "Product production tracking and error reporting system: worker mobile app, central database, live spreadsheet and management dashboard.",
+  "private": true,
+  "license": "UNLICENSED",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "demo": "node scripts/seed-demo.js",
+    "add-user": "node scripts/add-user.js",
+    "backup": "node scripts/backup.js",
+    "test": "node --test --test-concurrency=1 tests/e2e.test.js"
+  },
+  "optionalDependencies": {
+    "jsqr": "1.4.0"
+  }
+}

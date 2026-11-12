@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · Production Quality</title>
+  <link rel="icon" href="/shared/logo.svg">
+  <link rel="stylesheet" href="/shared/theme.css">
+  <link rel="stylesheet" href="/shared/manager.css">
+  <link rel="stylesheet" href="/dashboard/admin.css">
+</head>
+<body>
+  <header class="topbar"></header>
+  <div class="page">
+    <div class="page-head"><div><h1>Administration</h1><div class="sub">Configure stages and error types, register products, print QR labels, manage users and the spreadsheet connection.</div></div></div>
+
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="lists" class="active">Stages &amp; error types</button>
+      <button role="tab" data-tab="products">Products &amp; QR labels</button>
+      <button role="tab" data-tab="users">Users</button>
+      <button role="tab" data-tab="sheet">Spreadsheet connection</button>
+      <button role="tab" data-tab="account">My password</button>
+    </nav>
+
+    <!-- Lists -->
+    <section class="tab" id="tab-lists">
+      <div class="two">
+        <div class="card">
+          <header><h2>Production stages</h2><span class="sub">shown to workers in this order</span></header>
+          <div class="body">
+            <form class="inline-add" id="add-stage"><input class="input" name="name" placeholder="New stage name" maxlength="60" required><button class="btn primary">Add stage</button></form>
+            <table class="data"><thead><tr><th>Name</th><th>Order</th><th>Used in</th><th>Active</th><th></th></tr></thead><tbody id="stages"></tbody></table>
+          </div>
+        </div>
+        <div class="card">
+          <header><h2>Error types</h2><span class="sub">predefined categories</span></header>
+          <div class="body">
+            <form class="inline-add" id="add-category"><input class="input" name="name" placeholder="New error type" maxlength="60" required><button class="btn primary">Add type</button></form>
+            <table class="data"><thead><tr><th>Name</th><th>Order</th><th>Used in</th><th>Active</th><th></th></tr></thead><tbody id="categories"></tbody></table>
+          </div>
+        </div>
+      </div>
+      <p class="muted small">Items are deactivated rather than deleted so historical reports keep their stage and type.</p>
+    </section>
+
+    <!-- Products -->
+    <section class="tab" id="tab-products" hidden>
+      <div class="two">
+        <div class="card">
+          <header><h2>Register products</h2></header>
+          <div class="body">
+            <form id="add-products" class="stack">
+              <div class="grid2">
+                <label class="field">Order ID *<input class="input" name="order_id" required placeholder="PO-2026-0200" spellcheck="false"></label>
+                <label class="field">Product name<input class="input" name="product_name" placeholder="Control Cabinet CX-200"></label>
+                <label class="field">Customer<input class="input" name="customer"></label>
+                <label class="field">Number of boxes<input class="input" name="count" type="number" min="1" max="1000" placeholder="e.g. 20"></label>
+                <label class="field">…or a single Box ID<input class="input" name="box_id" placeholder="BOX-12345" spellcheck="false"></label>
+                <label class="field">Box ID prefix (batch)<input class="input" name="box_prefix" placeholder="BOX-&lt;order&gt;" spellcheck="false"></label>
+              </div>
+              <div class="form-err" id="prod-err"></div>
+              <button class="btn primary">Register &amp; print labels</button>
+            </form>
+            <p class="muted small">Each label holds a QR code linking to the worker app with the Box ID and Order ID, so it also works with a phone's own camera app.</p>
+          </div>
+        </div>
+        <div class="card">
+          <header><h2>Orders</h2><span class="sub">print labels per order</span></header>
+          <div class="body table-wrap tall"><table class="data"><thead><tr><th>Order ID</th><th>Product</th><th>Boxes</th><th>Errors</th><th></th></tr></thead><tbody id="orders"></tbody></table></div>
+        </div>
+      </div>
+      <div class="card">
+        <header><h2>Products</h2><input class="input search" id="prod-q" placeholder="Search Box ID or Order ID"></header>
+        <div class="body table-wrap tall"><table class="data"><thead><tr><th>Box ID</th><th>Order ID</th><th>Product</th><th>Produced</th><th>Errors</th><th></th></tr></thead><tbody id="products"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- Users -->
+    <section class="tab" id="tab-users" hidden>
+      <div class="two">
+        <div class="card">
+          <header><h2>Add user</h2></header>
+          <div class="body">
+            <form id="add-user" class="stack">
+              <div class="grid2">
+                <label class="field">Full name *<input class="input" name="full_name" required></label>
+                <label class="field">Username *<input class="input" name="username" required autocapitalize="none" spellcheck="false"></label>
+                <label class="field">Role *<select class="input" name="role"><option value="worker">Production worker</option><option value="manager">Manager / administrator</option></select></label>
+                <label class="field">Initial password * (min 8)<input class="input" name="password" type="text" minlength="8" required autocomplete="new-password"></label>
+              </div>
+              <div class="form-err" id="user-err"></div>
+              <button class="btn primary">Create user</button>
+            </form>
+            <p class="muted small"><b>Workers</b> can only scan products, submit reports and see their own submissions. <b>Managers</b> see everything, update statuses and manage configuration.</p>
+          </div>
+        </div>
+        <div class="card">
+          <header><h2>Users</h2></header>
+          <div class="body table-wrap tall"><table class="data"><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Reports</th><th>Active</th><th></th></tr></thead><tbody id="users"></tbody></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Spreadsheet -->
+    <section class="tab" id="tab-sheet" hidden>
+      <div class="card">
+        <header><h2>Live spreadsheet feed</h2></header>
+        <div class="body stack">
+          <p>Google Sheets and Excel read the error reports from this read-only CSV feed. The feed always reflects the current database.</p>
+          <label class="field">Feed URL (keep it private: anyone with it can read the reports)
+            <div class="copy-row"><input class="input mono" id="feed-url" readonly><button class="btn" id="copy-feed" type="button">Copy</button></div>
+          </label>
+          <div><button class="btn danger" id="rotate-feed" type="button">Generate new key</button> <span class="muted small">Breaks existing connections until they are updated with the new URL.</span></div>
+          <h3>Google Sheets (auto-refresh every minute)</h3>
+          <ol>
+            <li>Create a Google Sheet, then open <b>Extensions &gt; Apps Script</b>.</li>
+            <li>Paste the contents of <span class="mono">Spreadsheet/google-sheets-sync.gs</span> and set <span class="mono">FEED_URL</span> to the URL above.</li>
+            <li>Run <span class="mono">setup</span> once and approve the permissions. The sheet then refreshes every minute.</li>
+          </ol>
+          <p class="muted small">Google's servers must be able to reach this server over the internet (see Documentation/SETUP.md, “Spreadsheet”).</p>
+          <h3>Microsoft Excel (Power Query)</h3>
+          <ol>
+            <li><b>Data &gt; From Web</b>, paste the URL above, then <b>Load</b>.</li>
+            <li><b>Data &gt; Queries &amp; Connections</b> &gt; right-click the query &gt; <b>Properties</b> &gt; tick <b>Refresh every 1 minute</b> and <b>Refresh data when opening the file</b>.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Account -->
+    <section class="tab" id="tab-account" hidden>
+      <div class="card narrow">
+        <header><h2>Change my password</h2></header>
+        <div class="body">
+          <form id="pw-form" class="stack">
+            <label class="field">Current password<input class="input" type="password" name="current_password" required autocomplete="current-password"></label>
+            <label class="field">New password (min 8)<input class="input" type="password" name="new_password" minlength="8" required autocomplete="new-password"></label>
+            <div class="form-err" id="pw-err"></div>
+            <button class="btn primary">Change password</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="/shared/common.js"></script>
+  <script src="/dashboard/admin.js"></script>
+</body>
+</html>

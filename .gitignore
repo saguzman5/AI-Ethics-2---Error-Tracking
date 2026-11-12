@@ -1,0 +1,4 @@
+Database/data/
+Database/backups/
+Source Code/node_modules/
+Source Code/.env
