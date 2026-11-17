@@ -6,10 +6,10 @@
    ===================================================================== */
 window.PTS_CONFIG = {
   // Project URL, e.g. 'https://abcdefghijklmno.supabase.co'
-  SUPABASE_URL: 'PASTE-YOUR-PROJECT-URL-HERE',
-
+  SUPABASE_URL: 'https://abcdefghijklmnop.supabase.co',
+   
   // Publishable key (starts with sb_publishable_) or the legacy "anon public" key
-  SUPABASE_KEY: 'PASTE-YOUR-PUBLISHABLE-KEY-HERE',
+  SUPABASE_KEY: 'sb_publishable_xxxxxxxxxxxx',
 
   // Optional: lets people sign in with just a username. If logins are
   // created as name@yourcompany.com, put 'yourcompany.com' here and
