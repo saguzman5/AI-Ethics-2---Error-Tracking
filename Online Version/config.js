@@ -6,7 +6,7 @@
    ===================================================================== */
 window.PTS_CONFIG = {
   // Project URL, e.g. 'https://abcdefghijklmno.supabase.co'
-  SUPABASE_URL: 'https://abcdefghijklmnop.supabase.co',
+  SUPABASE_URL: 'https://xjpkxreeisjjmoiiqhrp.supabase.co/rest/v1/',
    
   // Publishable key (starts with sb_publishable_) or the legacy "anon public" key
   SUPABASE_KEY: 'sb_publishable_xxxxxxxxxxxx',
