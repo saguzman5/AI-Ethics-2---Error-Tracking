@@ -9,7 +9,7 @@ window.PTS_CONFIG = {
   SUPABASE_URL: 'https://xjpkxreeisjjmoiiqhrp.supabase.co',
    
   // Publishable key (starts with sb_publishable_) or the legacy "anon public" key
-  SUPABASE_KEY: 'sb_publishable_xxxxxxxxxxxx',
+  SUPABASE_KEY: 'sb_publishable_uxUuNRgeUwPSHxEvzyjEsA_hBimloYQ',
 
   // Optional: lets people sign in with just a username. If logins are
   // created as name@yourcompany.com, put 'yourcompany.com' here and
