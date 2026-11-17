@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Report Error · Production Quality</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="../shared/logo.svg">
+  <link rel="apple-touch-icon" href="../shared/logo.svg">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+  <header class="appbar">
+    <img src="../shared/logo.svg" alt="" class="logo">
+    <div class="title">
+      <strong>Report Error</strong>
+      <span id="who" class="who"></span>
+    </div>
+    <button class="icon-btn" id="btn-mine" aria-label="My reports">My reports</button>
+    <button class="icon-btn" id="btn-logout" aria-label="Sign out">Sign out</button>
+  </header>
+
+  <ol class="steps" aria-label="Progress">
+    <li data-step="scan" class="active"><span>1</span>Scan</li>
+    <li data-step="form"><span>2</span>Details</li>
+    <li data-step="done"><span>3</span>Done</li>
+  </ol>
+
+  <main>
+    <!-- STEP 1: SCAN ------------------------------------------------------>
+    <section id="view-scan" class="view">
+      <div class="scanner" id="scanner">
+        <video id="video" playsinline muted></video>
+        <div class="frame" aria-hidden="true"></div>
+        <div class="scanner-msg" id="scanner-msg">Starting camera…</div>
+      </div>
+      <div class="row2">
+        <button class="big-btn primary" id="btn-camera">Scan QR code</button>
+        <label class="big-btn" for="file-qr">Scan from photo</label>
+        <input type="file" id="file-qr" accept="image/*" capture="environment" hidden>
+      </div>
+
+      <form class="manual" id="manual-form" autocomplete="off">
+        <label for="manual-code" class="lbl">Or type / handheld-scan the Box ID</label>
+        <div class="manual-row">
+          <input id="manual-code" class="input xl" placeholder="e.g. BOX-01001" autocapitalize="characters" spellcheck="false" enterkeyhint="go">
+          <button class="big-btn primary" type="submit">Find</button>
+        </div>
+      </form>
+      <div class="alert error" id="scan-error" role="alert" hidden></div>
+    </section>
+
+    <!-- STEP 2: REPORT FORM ---------------------------------------------->
+    <section id="view-form" class="view" hidden>
+      <div class="product card">
+        <div class="ids">
+          <div><span class="k">Box ID</span><span class="v" id="p-box"></span></div>
+          <div><span class="k">Order ID</span><span class="v" id="p-order"></span></div>
+        </div>
+        <div class="pname" id="p-name"></div>
+        <div class="alert warn" id="p-open" hidden></div>
+        <button class="link-btn" id="btn-change-box" type="button">Scan a different box</button>
+      </div>
+
+      <form id="report-form" novalidate>
+        <fieldset class="group" id="g-stage">
+          <legend>Production stage <span class="req">required</span></legend>
+          <div class="chips" id="stages"></div>
+          <div class="field-err" data-for="stage"></div>
+        </fieldset>
+
+        <fieldset class="group" id="g-type">
+          <legend>Error type <span class="req">required</span></legend>
+          <div class="chips" id="categories"></div>
+          <div class="field-err" data-for="category"></div>
+        </fieldset>
+
+        <fieldset class="group" id="g-sev">
+          <legend>Severity <span class="req">required</span></legend>
+          <div class="sev-grid" id="severities"></div>
+          <div class="field-err" data-for="severity"></div>
+        </fieldset>
+
+        <fieldset class="group" id="g-desc">
+          <legend>What is wrong? <span class="req">required</span></legend>
+          <textarea id="description" class="input xl" rows="3" maxlength="1000" placeholder="Short description, e.g. Deep scratch on front panel"></textarea>
+          <div class="counter"><span id="desc-count">0</span>/1000</div>
+          <div class="field-err" data-for="description"></div>
+        </fieldset>
+
+        <fieldset class="group" id="g-photo">
+          <legend>Photo <span class="req" id="photo-req">recommended</span></legend>
+          <div class="row2" id="photo-buttons">
+            <label class="big-btn" for="file-camera">Take photo</label>
+            <label class="big-btn" for="file-gallery">Choose image</label>
+          </div>
+          <input type="file" id="file-camera" accept="image/*" capture="environment" hidden>
+          <input type="file" id="file-gallery" accept="image/jpeg,image/png,image/webp,image/*" hidden>
+          <div class="photo-preview" id="photo-preview" hidden>
+            <img id="photo-img" alt="Selected photo">
+            <button type="button" class="big-btn" id="btn-remove-photo">Remove photo</button>
+          </div>
+          <div class="field-err" data-for="photo"></div>
+        </fieldset>
+
+        <div class="alert error" id="submit-error" role="alert" hidden></div>
+        <div class="alert warn" id="dup-warning" hidden>
+          <p id="dup-text"></p>
+          <div class="row2">
+            <button type="button" class="big-btn" id="btn-dup-cancel">Cancel</button>
+            <button type="button" class="big-btn primary" id="btn-dup-confirm">Submit anyway</button>
+          </div>
+        </div>
+
+        <div class="submit-bar">
+          <button class="big-btn primary submit" id="btn-submit" type="submit">Submit report</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- STEP 3: CONFIRMATION -------------------------------------------->
+    <section id="view-done" class="view" hidden>
+      <div class="done card">
+        <div class="check" aria-hidden="true"><svg viewBox="0 0 24 24" width="40" height="40"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h2>Report submitted</h2>
+        <dl>
+          <dt>Error ID</dt><dd class="errid" id="d-id"></dd>
+          <dt>Box / Order</dt><dd id="d-box"></dd>
+          <dt>Submitted</dt><dd id="d-time"></dd>
+          <dt>Status</dt><dd id="d-status"></dd>
+        </dl>
+      </div>
+      <button class="big-btn primary" id="btn-next">Scan next product</button>
+      <button class="big-btn" id="btn-same">Report another issue on this box</button>
+    </section>
+
+    <!-- MY REPORTS ------------------------------------------------------>
+    <section id="view-mine" class="view" hidden>
+      <div class="mine-head">
+        <h2>My recent reports</h2>
+        <button class="big-btn sm" id="btn-mine-back">Back</button>
+      </div>
+      <div id="mine-list"></div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../config.js"></script>
+  <script src="../shared/common.js"></script>
+  <script src="../shared/backend.js"></script>
+  <script src="./scanner.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

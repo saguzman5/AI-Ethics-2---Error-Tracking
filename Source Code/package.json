@@ -13,7 +13,8 @@
     "demo": "node scripts/seed-demo.js",
     "add-user": "node scripts/add-user.js",
     "backup": "node scripts/backup.js",
-    "test": "node --test --test-concurrency=1 tests/e2e.test.js"
+    "test": "node --test --test-concurrency=1 tests/e2e.test.js",
+    "test:online": "node tests/online-ui-smoke.js"
   },
   "optionalDependencies": {
     "jsqr": "1.4.0"

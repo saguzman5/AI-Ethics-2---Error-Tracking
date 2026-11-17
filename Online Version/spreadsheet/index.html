@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spreadsheet · Production Quality</title>
+  <link rel="icon" href="../shared/logo.svg">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="../shared/manager.css">
+  <link rel="stylesheet" href="./spreadsheet.css">
+</head>
+<body>
+  <header class="topbar"></header>
+  <div class="page wide">
+    <div class="page-head">
+      <div>
+        <h1>Error Reports Spreadsheet</h1>
+        <div class="sub" id="status">Loading…</div>
+      </div>
+      <div class="actions">
+        <a class="btn" id="exp-csv" href="#" data-export="csv">Download CSV</a>
+        <a class="btn primary" id="exp-xlsx" href="#" data-export="xlsx">Download Excel (.xlsx)</a>
+        <a class="btn" href="../dashboard/admin.html#sheet">Connect Google Sheets / Excel</a>
+      </div>
+    </div>
+    <section class="card" id="filters"></section>
+    <section class="card sheet-card">
+      <div class="sheet-tools">
+        <span id="count" class="muted"></span>
+        <span class="spacer"></span>
+        <button class="btn sm" id="clear-col">Clear column filters</button>
+      </div>
+      <div class="table-wrap sheet" id="grid"></div>
+    </section>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../config.js"></script>
+  <script src="../shared/common.js"></script>
+  <script src="../shared/backend.js"></script>
+  <script src="../shared/xlsx.js"></script>
+  <script src="../shared/filters.js"></script>
+  <script src="../shared/report-panel.js"></script>
+  <script src="./spreadsheet.js"></script>
+</body>
+</html>

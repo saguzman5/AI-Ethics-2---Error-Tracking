@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR Labels · Production Quality</title>
+  <link rel="icon" href="../shared/logo.svg">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <style>
+    body { background: #fff; }
+    .bar { display: flex; gap: 10px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+    .bar h1 { font-size: 18px; flex: 1; }
+    .sheet { display: grid; grid-template-columns: repeat(auto-fill, 62mm); gap: 6mm; padding: 10mm; }
+    .label { width: 62mm; border: 1px dashed #94a3b8; border-radius: 3mm; padding: 3mm; text-align: center; break-inside: avoid; }
+    .label img { width: 42mm; height: 42mm; display: block; margin: 0 auto; }
+    .label .box { font: 700 15px ui-monospace, Menlo, Consolas, monospace; margin-top: 1mm; }
+    .label .order { font: 600 12px ui-monospace, Menlo, Consolas, monospace; color: #334155; }
+    .label .name { font-size: 10px; color: #64748b; }
+    @media print { .bar { display: none; } .sheet { padding: 0; } .label { border-color: #cbd5e1; } }
+  </style>
+</head>
+<body>
+  <div class="bar"><h1 id="title">QR labels</h1><button class="btn primary" id="print">Print labels</button></div>
+  <div class="sheet" id="sheet"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../config.js"></script>
+  <script src="../shared/common.js"></script>
+  <script src="../shared/backend.js"></script>
+  <script src="../shared/qrcode.js"></script>
+  <script src="./labels.js"></script>
+</body>
+</html>

@@ -2,7 +2,12 @@
 
 Factory workers scan a product's QR code on their phone and report an error with stage, type, severity, description and photo. The report goes into one central database. The live spreadsheet and the management dashboard read from that database and update within a second; managers move each report through **Open → Under Review → In Rework → Resolved** with notes, and every change is kept in a history.
 
-## Quick start
+## Two ways to run it
+
+- **Online version (free, always on, no computer needed):** pages on GitHub Pages, data on Supabase. Setup: [Documentation/ONLINE_SETUP.md](Documentation/ONLINE_SETUP.md).
+- **Local version:** runs on your own computer with `npm start` (below).
+
+## Quick start (local version)
 
 1. Install **Node.js 22.13+** from <https://nodejs.org> (no other software or packages needed).
 2. In a terminal:
@@ -32,18 +37,23 @@ AI Ethics/
 │   ├── scanner.js                Camera QR scanning (native + jsQR fallback)
 │   └── manifest.webmanifest      "Add to Home Screen" support
 ├── Database/
-│   ├── schema.sql                Tables, constraints, triggers, reporting view
+│   ├── schema.sql                Tables, constraints, triggers, reporting view (local version)
+│   ├── supabase-setup.sql        Same for the online version (run in Supabase SQL Editor)
+│   ├── supabase-demo-data.sql    Optional demo data (online) + supabase-remove-demo-data.sql
 │   ├── README.md
 │   └── data/                     Created on first start: production.db + photos/ (not in version control)
 ├── Spreadsheet/
 │   ├── index.html, spreadsheet.js, spreadsheet.css   Live spreadsheet (served at /spreadsheet/)
-│   ├── google-sheets-sync.gs     Google Sheets auto-sync script
+│   ├── google-sheets-sync.gs     Google Sheets auto-sync script (local version)
+│   ├── google-sheets-sync-online.gs   Google Sheets auto-sync script (online version)
 │   └── README.md                 Google Sheets / Excel instructions
 ├── Dashboard/
 │   ├── index.html, dashboard.js, dashboard.css, charts.js   Management dashboard
 │   ├── admin.html, admin.js, admin.css                       Administration
 │   └── labels.html, labels.js                                Printable QR labels
 ├── Shared/                       Login page, common styles, filter bar, report panel, logo
+├── Online Version/               Free hosted version (GitHub Pages + Supabase); fill in config.js
+├── .github/workflows/            Publishes "Online Version" to GitHub Pages on every push
 ├── Source Code/                  Server
 │   ├── package.json, .env.example
 │   ├── src/                      server, routes, database access, auth, metrics, exports, QR, xlsx writer
@@ -51,7 +61,8 @@ AI Ethics/
 │   ├── tests/                    e2e.test.js (API), ui-smoke.js (browser)
 │   └── vendor/qrcode/            QR encoder (MIT, Kazuhiko Arase)
 └── Documentation/
-    ├── SETUP.md                  Installation, HTTPS, spreadsheet connections, backups
+    ├── ONLINE_SETUP.md           Step-by-step setup of the free online version
+    ├── SETUP.md                  Local version: installation, HTTPS, spreadsheet connections, backups
     ├── USER_GUIDE.md             How workers and managers use the system
     ├── METRICS.md                Exact formulas (rework rate etc.)
     ├── ARCHITECTURE.md           Design, database, security, API
@@ -64,4 +75,5 @@ AI Ethics/
 cd "AI Ethics/Source Code"
 npm test                  # 12 end-to-end API scenarios
 node tests/ui-smoke.js    # browser walkthrough (needs Chrome), saves screenshots
+node tests/online-ui-smoke.js   # online version against a Supabase test double (needs Chrome)
 ```

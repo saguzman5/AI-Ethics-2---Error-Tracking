@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · Production Quality</title>
+  <link rel="icon" href="../shared/logo.svg">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="../shared/manager.css">
+  <link rel="stylesheet" href="./admin.css">
+</head>
+<body>
+  <header class="topbar"></header>
+  <div class="page">
+    <div class="page-head"><div><h1>Administration</h1><div class="sub">Configure stages and error types, register products, print QR labels, manage users, settings and the spreadsheet connection.</div></div></div>
+
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="lists" class="active">Stages &amp; error types</button>
+      <button role="tab" data-tab="products">Products &amp; QR labels</button>
+      <button role="tab" data-tab="users">Users</button>
+      <button role="tab" data-tab="settings">Settings</button>
+      <button role="tab" data-tab="sheet">Spreadsheet connection</button>
+      <button role="tab" data-tab="account">My password</button>
+    </nav>
+
+    <!-- Lists -->
+    <section class="tab" id="tab-lists">
+      <div class="two">
+        <div class="card">
+          <header><h2>Production stages</h2><span class="sub">shown to workers in this order</span></header>
+          <div class="body">
+            <form class="inline-add" id="add-stage"><input class="input" name="name" placeholder="New stage name" maxlength="60" required><button class="btn primary">Add stage</button></form>
+            <table class="data"><thead><tr><th>Name</th><th>Order</th><th>Used in</th><th>Active</th><th></th></tr></thead><tbody id="stages"></tbody></table>
+          </div>
+        </div>
+        <div class="card">
+          <header><h2>Error types</h2><span class="sub">predefined categories</span></header>
+          <div class="body">
+            <form class="inline-add" id="add-category"><input class="input" name="name" placeholder="New error type" maxlength="60" required><button class="btn primary">Add type</button></form>
+            <table class="data"><thead><tr><th>Name</th><th>Order</th><th>Used in</th><th>Active</th><th></th></tr></thead><tbody id="categories"></tbody></table>
+          </div>
+        </div>
+      </div>
+      <p class="muted small">Items are deactivated rather than deleted so historical reports keep their stage and type.</p>
+    </section>
+
+    <!-- Products -->
+    <section class="tab" id="tab-products" hidden>
+      <div class="two">
+        <div class="card">
+          <header><h2>Register products</h2></header>
+          <div class="body">
+            <form id="add-products" class="stack">
+              <div class="grid2">
+                <label class="field">Order ID *<input class="input" name="order_id" required placeholder="PO-2026-0200" spellcheck="false"></label>
+                <label class="field">Product name<input class="input" name="product_name" placeholder="Control Cabinet CX-200"></label>
+                <label class="field">Customer<input class="input" name="customer"></label>
+                <label class="field">Number of boxes<input class="input" name="count" type="number" min="1" max="1000" placeholder="e.g. 20"></label>
+                <label class="field">…or a single Box ID<input class="input" name="box_id" placeholder="BOX-12345" spellcheck="false"></label>
+                <label class="field">Box ID prefix (batch)<input class="input" name="box_prefix" placeholder="BOX-&lt;order&gt;" spellcheck="false"></label>
+              </div>
+              <div class="form-err" id="prod-err"></div>
+              <button class="btn primary">Register &amp; print labels</button>
+            </form>
+            <p class="muted small">Each label holds a QR code linking to the worker app with the Box ID and Order ID, so it also works with a phone's own camera app.</p>
+          </div>
+        </div>
+        <div class="card">
+          <header><h2>Orders</h2><span class="sub">print labels per order</span></header>
+          <div class="body table-wrap tall"><table class="data"><thead><tr><th>Order ID</th><th>Product</th><th>Boxes</th><th>Errors</th><th></th></tr></thead><tbody id="orders"></tbody></table></div>
+        </div>
+      </div>
+      <div class="card">
+        <header><h2>Products</h2><input class="input search" id="prod-q" placeholder="Search Box ID or Order ID"></header>
+        <div class="body table-wrap tall"><table class="data"><thead><tr><th>Box ID</th><th>Order ID</th><th>Product</th><th>Produced</th><th>Errors</th><th></th></tr></thead><tbody id="products"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- Users -->
+    <section class="tab" id="tab-users" hidden>
+      <div class="two">
+        <div class="card">
+          <header><h2>Add a user</h2></header>
+          <div class="body stack">
+            <p>Logins are created in your Supabase project, then given a role here.</p>
+            <ol>
+              <li>Open <b>supabase.com</b> &gt; your project &gt; <b>Authentication</b> &gt; <b>Users</b>.</li>
+              <li>Click <b>Add user</b> &gt; <b>Create new user</b>. Enter an email (it can be made up, for example <span class="mono">jchen@yourcompany.com</span>; no email is sent) and a password of at least 8 characters. Tick <b>Auto Confirm User</b>, then click <b>Create user</b>.</li>
+              <li>Reload this page. The person appears in the list as a <b>worker</b>. Change the role to manager if needed and click <b>Save</b>.</li>
+            </ol>
+            <p class="muted small"><b>Workers</b> can only scan products, submit reports and see their own submissions. <b>Managers</b> see everything, update statuses and manage configuration. To reset a password: Supabase &gt; Authentication &gt; Users &gt; the user &gt; <b>Send password recovery</b>, or delete the login there and create it again (only possible if the person has no reports; otherwise deactivate them here).</p>
+          </div>
+        </div>
+        <div class="card">
+          <header><h2>Users</h2><button class="btn sm" id="users-reload" type="button">Reload</button></header>
+          <div class="body table-wrap tall"><table class="data"><thead><tr><th>Name</th><th>Login</th><th>Role</th><th>Reports</th><th>Active</th><th></th></tr></thead><tbody id="users"></tbody></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section class="tab" id="tab-settings" hidden>
+      <div class="card narrow">
+        <header><h2>System settings</h2></header>
+        <div class="body">
+          <form id="settings-form" class="stack">
+            <label class="field">Factory time zone<input class="input" name="timezone" placeholder="e.g. America/Chicago or Europe/Madrid" list="tz-list"></label>
+            <datalist id="tz-list"></datalist>
+            <label class="field">Warn about a similar unresolved report within (minutes)<input class="input" name="duplicate_window_minutes" type="number" min="0" max="10080"></label>
+            <label class="field check"><input type="checkbox" name="require_photo"> A photo is required for every report</label>
+            <label class="field check"><input type="checkbox" name="auto_register_products"> Register unknown boxes automatically when the QR code contains both Box ID and Order ID</label>
+            <div class="form-err" id="settings-err"></div>
+            <button class="btn primary">Save settings</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Spreadsheet -->
+    <section class="tab" id="tab-sheet" hidden>
+      <div class="card">
+        <header><h2>Google Sheets live sync</h2></header>
+        <div class="body stack">
+          <p>Google Sheets copies all error reports from the online database every minute. The database stays the master copy.</p>
+          <label class="field">Settings for the script (keep them private: the feed key lets anyone read the reports)
+            <textarea class="input mono" id="feed-config" rows="4" readonly></textarea>
+          </label>
+          <div><button class="btn" id="copy-feed" type="button">Copy settings</button> <button class="btn danger" id="rotate-feed" type="button">Generate new feed key</button></div>
+          <h3>Set up</h3>
+          <ol>
+            <li>Create a Google Sheet, then open <b>Extensions &gt; Apps Script</b>.</li>
+            <li>Paste the contents of <span class="mono">Spreadsheet/google-sheets-sync-online.gs</span>. Replace the three settings lines at the top with the ones above, then save.</li>
+            <li>Select the function <span class="mono">setup</span> and click <b>Run</b>. Approve the permissions. The sheet then refreshes every minute.</li>
+          </ol>
+          <h3>Excel</h3>
+          <p>Use <b>Download Excel (.xlsx)</b> on the Spreadsheet page for a formatted snapshot with the status history.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Account -->
+    <section class="tab" id="tab-account" hidden>
+      <div class="card narrow">
+        <header><h2>Change my password</h2></header>
+        <div class="body">
+          <form id="pw-form" class="stack">
+            <label class="field">Current password<input class="input" type="password" name="current_password" required autocomplete="current-password"></label>
+            <label class="field">New password (min 8)<input class="input" type="password" name="new_password" minlength="8" required autocomplete="new-password"></label>
+            <div class="form-err" id="pw-err"></div>
+            <button class="btn primary">Change password</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../config.js"></script>
+  <script src="../shared/common.js"></script>
+  <script src="../shared/backend.js"></script>
+  <script src="./admin.js"></script>
+</body>
+</html>

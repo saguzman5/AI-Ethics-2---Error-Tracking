@@ -2,3 +2,6 @@ Database/data/
 Database/backups/
 Source Code/node_modules/
 Source Code/.env
+Source Code/cloudflared
+Source Code/cloudflared.tgz
+.DS_Store
